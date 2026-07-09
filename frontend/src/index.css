@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-surface text-ink font-body antialiased;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display;
+}
+
+::selection {
+  @apply bg-teal-300 text-ink;
+}
+
+/* Visible keyboard focus ring for accessibility */
+:focus-visible {
+  outline: 2px solid #146356;
+  outline-offset: 2px;
+}
+
+.container-shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.card {
+  @apply bg-card border border-border rounded-2xl shadow-soft;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-teal-700 px-5 py-2.5 text-sm font-semibold text-teal-700 transition hover:bg-teal-50 disabled:opacity-50;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-ink/70 transition hover:bg-black/5;
+}
+
+.input-field {
+  @apply w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink/40 focus:border-teal-500 focus:ring-1 focus:ring-teal-500;
+}
+
+.label {
+  @apply mb-1.5 block text-sm font-medium text-ink/80;
+}
+
+.skeleton {
+  @apply animate-pulse rounded-xl bg-teal-100/60;
+}
+
+.badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+}
