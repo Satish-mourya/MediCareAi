@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { LayoutDashboard, CalendarClock, CreditCard, UserCircle, Star, X } from 'lucide-react';
+import { LayoutDashboard, CalendarClock, CreditCard, UserCircle, Star, X, Video } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../../components/common/DashboardLayout';
 import { RowSkeleton } from '../../components/common/Skeletons';
@@ -137,6 +138,14 @@ export default function PatientAppointments() {
                   <button onClick={() => setReviewTarget(a)} className="btn-secondary text-xs">
                     Leave a review
                   </button>
+                )}
+                {['confirmed', 'completed'].includes(a.status) && (
+                  <Link
+                    to={`/video-call/${a._id}`}
+                    className="btn-primary flex items-center gap-2 text-xs"
+                  >
+                    <Video className="h-3 w-3" /> Join Call
+                  </Link>
                 )}
               </div>
             </div>

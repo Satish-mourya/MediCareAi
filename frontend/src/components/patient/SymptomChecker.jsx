@@ -20,7 +20,7 @@ export default function SymptomChecker() {
       const { data } = await api.post('/ai/symptom-check', { symptomText });
       setResult(data.data);
     } catch (err) {
-      /* toast handled globally */
+      //toast handled globally 
     } finally {
       setLoading(false);
     }

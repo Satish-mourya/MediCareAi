@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -23,6 +25,40 @@ const adminRoutes = require('./routes/adminRoutes');
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+io.on('connection', (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+
+  socket.on('join-room', (roomId, userId) => {
+    socket.join(roomId);
+    socket.to(roomId).emit('user-connected', userId);
+
+    socket.on('disconnect', () => {
+      socket.to(roomId).emit('user-disconnected', userId);
+    });
+  });
+
+  socket.on('offer', (payload) => {
+    io.to(payload.target).emit('offer', payload);
+  });
+
+  socket.on('answer', (payload) => {
+    io.to(payload.target).emit('answer', payload);
+  });
+
+  socket.on('ice-candidate', (incoming) => {
+    io.to(incoming.target).emit('ice-candidate', incoming);
+  });
+});
 
 app.use(helmet());
 app.use(
@@ -64,7 +100,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
