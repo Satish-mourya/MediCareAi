@@ -90,28 +90,28 @@ export default function RegisterDoctor() {
                 <label className="label">Full name</label>
                 <div className="relative">
                   <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-                  <input required className="input-field pl-10" placeholder="Dr. Jane Doe" value={form.name} onChange={update('name')} />
+                  <input required className="input-field input-with-icon pl-11" placeholder="Dr. Jane Doe" value={form.name} onChange={update('name')} />
                 </div>
               </div>
               <div>
                 <label className="label">Email address</label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-                  <input type="email" required className="input-field pl-10" placeholder="you@clinic.com" value={form.email} onChange={update('email')} />
+                  <input type="email" required className="input-field input-with-icon pl-11" placeholder="you@clinic.com" value={form.email} onChange={update('email')} />
                 </div>
               </div>
               <div>
                 <label className="label">Phone number</label>
                 <div className="relative">
                   <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-                  <input className="input-field pl-10" placeholder="+91 90000 00000" value={form.phone} onChange={update('phone')} />
+                  <input className="input-field input-with-icon pl-11" placeholder="+91 90000 00000" value={form.phone} onChange={update('phone')} />
                 </div>
               </div>
               <div>
                 <label className="label">Password</label>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-                  <input type="password" required minLength={6} className="input-field pl-10" placeholder="At least 6 characters" value={form.password} onChange={update('password')} />
+                  <input type="password" required minLength={6} className="input-field input-with-icon pl-11" placeholder="At least 6 characters" value={form.password} onChange={update('password')} />
                 </div>
               </div>
             </div>

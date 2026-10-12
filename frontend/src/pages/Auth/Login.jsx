@@ -44,7 +44,7 @@ export default function Login() {
               <input
                 type="email"
                 required
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -58,7 +58,7 @@ export default function Login() {
               <input
                 type="password"
                 required
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}

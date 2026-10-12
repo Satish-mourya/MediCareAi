@@ -236,20 +236,24 @@ export default function DoctorProfile() {
                   ))}
                 </div>
               ) : slots.length === 0 ? (
-                <p className="text-sm text-ink/50">No slots available on this date.</p>
+                <p className="text-sm text-ink/50">
+                  {new Date(selectedDate).getDay() === 0
+                    ? 'Clinic is closed on Sundays. Please choose Monday through Saturday.'
+                    : 'No slots available on this date.'}
+                </p>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {slots.map((slot) => (
                     <button
                       key={slot._id}
                       onClick={() => setSelectedSlot(slot)}
-                      className={`rounded-lg border px-2 py-2 text-xs font-medium ${
+                      className={`rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
                         selectedSlot?._id === slot._id
-                          ? 'border-teal-700 bg-teal-700 text-white'
-                          : 'border-border text-ink/70 hover:border-teal-300'
+                          ? 'border-teal-700 bg-teal-700 text-white shadow-sm'
+                          : 'border-border text-ink/80 hover:border-teal-400 bg-card'
                       }`}
                     >
-                      {slot.startTime}
+                      {slot.startTime} – {slot.endTime}
                     </button>
                   ))}
                 </div>

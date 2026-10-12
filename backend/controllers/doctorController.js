@@ -54,22 +54,83 @@ const getDoctorById = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { doctor, reviews }));
 });
 
-// @desc    Get available (unbooked, future) time slots for a doctor
-// @route   GET /api/doctors/:id/slots?date=2026-07-10
+// Default 5 initial 1-hour slots ready for every working day (Mon-Sat)
+const DEFAULT_1HR_SLOTS = [
+  { startTime: '09:00', endTime: '10:00' },
+  { startTime: '10:00', endTime: '11:00' },
+  { startTime: '11:00', endTime: '12:00' },
+  { startTime: '14:00', endTime: '15:00' },
+  { startTime: '15:00', endTime: '16:00' },
+];
+
+// @desc    Get available time slots for a doctor (auto-initializes 5 1-hr slots for Mon-Sat)
+// @route   GET /api/doctors/:id/slots?date=2026-07-10&all=true
 const getDoctorSlots = asyncHandler(async (req, res) => {
-  const { date } = req.query;
-  const filter = { doctor: req.params.id, isBooked: false };
+  const { date, all } = req.query;
+  const doctor = await Doctor.findById(req.params.id);
+  if (!doctor) throw new ApiError(404, 'Doctor not found');
 
   if (date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
-    filter.date = { $gte: start, $lte: end };
-  } else {
-    filter.date = { $gte: new Date() };
+
+    const isSunday = start.getDay() === 0;
+    const isHoliday = (doctor.holidays || []).some(
+      (h) => new Date(h).toDateString() === start.toDateString()
+    );
+
+    // If it's Sunday, doctor is closed
+    if (isSunday) {
+      return res.status(200).json(
+        new ApiResponse(200, { slots: [], isSunday: true }, 'Clinic closed on Sundays')
+      );
+    }
+
+    // If marked as holiday
+    if (isHoliday) {
+      return res.status(200).json(
+        new ApiResponse(200, { slots: [], isHoliday: true }, 'Doctor is on leave on this date')
+      );
+    }
+
+    // Check if slots already exist for this date
+    const existingCount = await TimeSlot.countDocuments({
+      doctor: doctor._id,
+      date: { $gte: start, $lte: end },
+    });
+
+    // Auto-initialize 5 1-hour slots if none exist yet for this working day
+    if (existingCount === 0) {
+      const initialSlots = DEFAULT_1HR_SLOTS.map((s) => ({
+        doctor: doctor._id,
+        date: start,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        isBooked: false,
+      }));
+
+      try {
+        await TimeSlot.insertMany(initialSlots, { ordered: false });
+      } catch (err) {
+        // Ignore duplicate key race conditions
+      }
+    }
+
+    const filter = {
+      doctor: doctor._id,
+      date: { $gte: start, $lte: end },
+    };
+    if (all !== 'true') {
+      filter.isBooked = false;
+    }
+
+    const slots = await TimeSlot.find(filter).sort({ startTime: 1 });
+    return res.status(200).json(new ApiResponse(200, { slots, isSunday: false }));
   }
 
+  const filter = { doctor: doctor._id, isBooked: false, date: { $gte: new Date() } };
   const slots = await TimeSlot.find(filter).sort({ date: 1, startTime: 1 });
   res.status(200).json(new ApiResponse(200, { slots }));
 });
@@ -172,6 +233,50 @@ const deleteSlot = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, null, 'Slot deleted'));
 });
 
+// @desc    Update an existing unbooked slot's timing
+// @route   PUT /api/doctors/me/slots/:slotId
+// body: { startTime, endTime }
+const updateSlot = asyncHandler(async (req, res) => {
+  const doctor = await Doctor.findOne({ user: req.user._id });
+  if (!doctor) throw new ApiError(404, 'Doctor profile not found');
+
+  const { startTime, endTime } = req.body;
+  if (!startTime || !endTime) {
+    throw new ApiError(400, 'Both startTime and endTime are required');
+  }
+
+  const slot = await TimeSlot.findOne({ _id: req.params.slotId, doctor: doctor._id });
+  if (!slot) throw new ApiError(404, 'Slot not found');
+  if (slot.isBooked) {
+    throw new ApiError(400, 'Cannot edit an already booked slot');
+  }
+
+  const toMinutes = (t) => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+  if (toMinutes(startTime) >= toMinutes(endTime)) {
+    throw new ApiError(400, 'endTime must be after startTime');
+  }
+
+  // Check collision with another slot on the same date
+  const collision = await TimeSlot.findOne({
+    doctor: doctor._id,
+    date: slot.date,
+    startTime,
+    _id: { $ne: slot._id },
+  });
+  if (collision) {
+    throw new ApiError(409, `A slot starting at ${startTime} already exists on this date`);
+  }
+
+  slot.startTime = startTime;
+  slot.endTime = endTime;
+  await slot.save();
+
+  res.status(200).json(new ApiResponse(200, { slot }, 'Slot updated successfully'));
+});
+
 // @desc    Mark a holiday (removes future unbooked slots on that date)
 // @route   POST /api/doctors/me/holidays
 const addHoliday = asyncHandler(async (req, res) => {
@@ -225,6 +330,7 @@ module.exports = {
   getMyDoctorProfile,
   updateMyDoctorProfile,
   createSlots,
+  updateSlot,
   deleteSlot,
   addHoliday,
   setRecurringSchedule,

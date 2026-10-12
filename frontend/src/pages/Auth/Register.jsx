@@ -39,7 +39,7 @@ export default function Register() {
               <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
               <input
                 required
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="Jane Doe"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -53,7 +53,7 @@ export default function Register() {
               <input
                 type="email"
                 required
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -65,7 +65,7 @@ export default function Register() {
             <div className="relative">
               <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
               <input
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="+1 555 000 0000"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -80,7 +80,7 @@ export default function Register() {
                 type="password"
                 required
                 minLength={6}
-                className="input-field pl-10"
+                className="input-field input-with-icon pl-11"
                 placeholder="At least 6 characters"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}

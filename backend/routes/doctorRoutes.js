@@ -7,6 +7,7 @@ const {
   getMyDoctorProfile,
   updateMyDoctorProfile,
   createSlots,
+  updateSlot,
   deleteSlot,
   addHoliday,
   setRecurringSchedule,
@@ -19,6 +20,7 @@ const router = express.Router();
 router.get('/me/profile', protect, authorize('doctor'), getMyDoctorProfile);
 router.put('/me/profile', protect, authorize('doctor'), updateMyDoctorProfile);
 router.post('/me/slots', protect, authorize('doctor'), createSlots);
+router.put('/me/slots/:slotId', protect, authorize('doctor'), updateSlot);
 router.delete('/me/slots/:slotId', protect, authorize('doctor'), deleteSlot);
 router.post('/me/holidays', protect, authorize('doctor'), addHoliday);
 router.put('/me/recurring-schedule', protect, authorize('doctor'), setRecurringSchedule);
