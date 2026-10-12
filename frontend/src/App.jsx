@@ -25,7 +25,7 @@ import AdminPatients from './pages/Admin/AdminPatients';
 import AdminAppointments from './pages/Admin/AdminAppointments';
 import AdminPayments from './pages/Admin/AdminPayments';
 
-import VideoCall from './pages/VideoCall';
+
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -72,14 +72,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/video-call/:id"
-        element={
-          <ProtectedRoute allowedRoles={['patient', 'doctor']}>
-            <VideoCall />
-          </ProtectedRoute>
-        }
-      />
+
 
       {/* Doctor */}
       <Route

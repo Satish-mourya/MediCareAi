@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
+const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -25,45 +25,23 @@ const adminRoutes = require('./routes/adminRoutes');
 connectDB();
 
 const app = express();
-const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
 
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
+const corsOriginHandler = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const cleanOrigin = origin.replace(/\/+$/, '');
+  const allowed = clientUrl.split(',').map((u) => u.trim().replace(/\/+$/, ''));
+  if (allowed.includes('*') || allowed.includes(cleanOrigin) || process.env.NODE_ENV !== 'production') {
+    return callback(null, true);
+  }
+  return callback(null, true);
+};
 
-  socket.on('join-room', (roomId, userId) => {
-    socket.join(roomId);
-    socket.to(roomId).emit('user-connected', userId);
-
-    socket.on('disconnect', () => {
-      socket.to(roomId).emit('user-disconnected', userId);
-    });
-  });
-
-  socket.on('offer', (payload) => {
-    io.to(payload.target).emit('offer', payload);
-  });
-
-  socket.on('answer', (payload) => {
-    io.to(payload.target).emit('answer', payload);
-  });
-
-  socket.on('ice-candidate', (incoming) => {
-    io.to(incoming.target).emit('ice-candidate', incoming);
-  });
-});
-
-app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: corsOriginHandler,
     credentials: true,
   })
 );
@@ -86,6 +64,7 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 app.use('/api/auth', authLimiter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+app.get('/api', (req, res) => res.json({ status: 'ok', message: 'MediCareAI API root' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
@@ -96,11 +75,36 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/admin', adminRoutes);
 
+// If frontend build exists (e.g. unified fullstack deployment on Render), serve frontend
+const frontendDist = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  // Helpful root endpoint when backend is hosted as a standalone API
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'MediCareAI Backend API is running.',
+      apiBaseUrl: '/api',
+      endpoints: {
+        health: '/api/health',
+        registerPatient: 'POST /api/auth/register',
+        registerDoctor: 'POST /api/auth/register-doctor',
+        login: 'POST /api/auth/login',
+      },
+    });
+  });
+}
+
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 

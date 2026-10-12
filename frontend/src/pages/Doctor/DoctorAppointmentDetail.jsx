@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarClock, Clock3, UserCircle2, Sparkles, CheckCircle2, ClipboardList, Video } from 'lucide-react';
+import { LayoutDashboard, CalendarClock, Clock3, UserCircle2, Sparkles, CheckCircle2, ClipboardList } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../../components/common/DashboardLayout';
 import UrgencyBadge from '../../components/common/UrgencyBadge';
@@ -75,14 +75,7 @@ export default function DoctorAppointmentDetail() {
                 <p className="text-sm text-ink/50">
                   {format(new Date(appointment.date), 'MMMM d, yyyy')} &middot; {appointment.startTime} - {appointment.endTime}
                 </p>
-                {['confirmed', 'completed'].includes(appointment.status) && (
-                  <button
-                    onClick={() => navigate(`/video-call/${appointment._id}`)}
-                    className="btn-primary mt-3 flex items-center gap-2 text-sm"
-                  >
-                    <Video className="h-4 w-4" /> Join Video Call
-                  </button>
-                )}
+
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-ink/70 sm:grid-cols-4">
